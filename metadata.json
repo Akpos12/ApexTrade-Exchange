@@ -1,0 +1,6 @@
+{
+  "name": "ApexTrade Exchange",
+  "description": "A high-fidelity full-stack trading platform with live charts, advanced order books, secure wallets, copy trading, staking, and automated tax reporting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

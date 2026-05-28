@@ -1,0 +1,148 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Represents the standard or administrative investor profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique user reference ID" },
+        "name": { "type": "string", "description": "Human displays name" },
+        "email": { "type": "string", "format": "email", "description": "Secure account identifier" },
+        "phone": { "type": "string", "description": "Verified telephone coordinates" },
+        "status": { "type": "string", "enum": ["active", "suspended"], "description": "Profile active status" },
+        "verified": { "type": "boolean", "description": "Corporate identity verification flag" },
+        "registrationDate": { "type": "string", "format": "date-time", "description": "ISO timestamp of account signup" },
+        "balances": { "type": "object", "description": "Crypto and fiat currency wallets balance levels" },
+        "avgProfitPercentage": { "type": "number", "description": "Overall average returns" },
+        "accountNotes": { "type": "string", "description": "Private corporate internal notes" },
+        "isTwoFactorEnabled": { "type": "boolean", "description": "Two factor authentication toggle lock" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "Authorized clearance status levels" }
+      },
+      "required": ["id", "name", "email", "status", "role"]
+    },
+    "Deposit": {
+      "title": "Deposit Ticket Request",
+      "description": "Asset settlement deposits requested by users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "network": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "date": { "type": "string" },
+        "txHash": { "type": "string" },
+        "systemComments": { "type": "string" }
+      },
+      "required": ["id", "userId", "amount", "currency", "status"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal Ticket Request",
+      "description": "Corporate asset settlement withdrawal requests",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "network": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "processed", "reviewed", "rejected"] },
+        "date": { "type": "string" },
+        "destinationDetails": { "type": "string" }
+      },
+      "required": ["id", "userId", "amount", "currency", "address", "status"]
+    },
+    "Ticket": {
+      "title": "Support Ticket",
+      "description": "Client interaction support requests",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "category": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "reopened", "answered", "closed"] },
+        "createdAt": { "type": "string" },
+        "replies": { "type": "array" }
+      },
+      "required": ["id", "userId", "subject", "message", "status"]
+    },
+    "FAQ": {
+      "title": "FAQ Entry",
+      "description": "Corporate information and system FAQs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "string" },
+        "answer": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["id", "question", "answer", "category"]
+    },
+    "Audit": {
+      "title": "System Audit Trail",
+      "description": "Internal security system transactions audit log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "actor": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "ip": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "actor", "action", "details", "timestamp"]
+    },
+    "PaymentConfig": {
+      "title": "Payment Coordinates",
+      "description": "Administrative bank and wallet payment coordinate fields",
+      "type": "object",
+      "properties": {
+        "bankName": { "type": "string" },
+        "routingNumber": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "cryptoAddresses": { "type": "object" }
+      },
+      "required": ["bankName", "routingNumber", "accountNumber", "cryptoAddresses"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "User",
+      "description": "User profile records indexed by auth ID or generated user ID"
+    },
+    "deposits": {
+      "schema": "Deposit",
+      "description": "Requested user asset deposits"
+    },
+    "withdrawals": {
+      "schema": "Withdrawal",
+      "description": "Requested user asset withdrawals"
+    },
+    "tickets": {
+      "schema": "Ticket",
+      "description": "Customer live support ticket records"
+    },
+    "faqs": {
+      "schema": "FAQ",
+      "description": "Help center FAQs"
+    },
+    "audits": {
+      "schema": "Audit",
+      "description": "System admin auditing security records"
+    },
+    "payment_config": {
+      "schema": "PaymentConfig",
+      "description": "Administrative payout coordinates settings"
+    }
+  }
+}

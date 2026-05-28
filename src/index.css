@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* High Density Exchange slate- replacements */
+  --color-slate-950: #0B0E11; /* Deep binance background */
+  --color-slate-900: #181A20; /* Panel surface cards */
+  --color-slate-850: #20242B; /* Medium panel highlight */
+  --color-slate-800: #2B2F36; /* Boundary lines & grids */
+  --color-slate-750: #333842;
+  --color-slate-700: #3F4653;
+
+  /* Primary Accent Yellow */
+  --color-amber-500: #FCD535;
+  --color-amber-400: #E0C02E;
+
+  /* Uplifting green and downing red */
+  --color-emerald-500: #02C076;
+  --color-emerald-400: #02C076;
+  --color-rose-500: #F84960;
+  --color-rose-400: #F84960;
+
+  /* Labels Texts Gray replacements */
+  --color-slate-400: #848E9C;
+  --color-slate-350: #B7BDC6;
+  --color-slate-300: #EAECEF;
+  --color-white: #FFFFFF;
+}
+
+body {
+  background-color: #0B0E11;
+  color: #EAECEF;
+  font-family: var(--font-sans);
+}
+
+/* Scrollbars overrides for Exchange indices grids */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0E11;
+}
+::-webkit-scrollbar-thumb {
+  background: #2B2F36;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3F4653;
+}
+
+/* Animations helpers */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
