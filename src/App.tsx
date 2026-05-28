@@ -52,6 +52,7 @@ import EarnSection from './components/EarnSection';
 import TaxReporting from './components/TaxReporting';
 import SentimentTracker from './components/SentimentTracker';
 import AdminPanel from './components/AdminPanel';
+import { WelcomePage } from './components/WelcomePage';
 import { 
   Shield, RefreshCw, Send, CheckCircle2, ChevronRight, X, UserCheck, 
   AlertTriangle, Lock, Copy, Check, CreditCard, Globe
@@ -2713,7 +2714,7 @@ export default function App() {
         {/* SIDEBAR: ASSET SELECTOR DRAWER */}
         <aside 
           className={`bg-slate-900 border-r border-slate-850 transition-all duration-300 z-30 flex flex-col justify-between fixed md:relative top-[105px] md:top-0 h-[calc(100vh-105px)] md:h-auto left-0 ${
-            sidebarOpen ? 'w-[280px] translate-x-0 opacity-100' : 'w-0 -translate-x-full md:translate-x-0 md:w-0 md:opacity-0 md:pointer-events-none'
+            currentUser && sidebarOpen ? 'w-[280px] translate-x-0 opacity-100' : 'w-0 -translate-x-full md:translate-x-0 md:w-0 md:opacity-0 md:pointer-events-none'
           }`}
         >
           <div className="p-4 flex flex-col h-full">
@@ -2910,21 +2911,14 @@ export default function App() {
           <div className="animate-slide-up">
             
             {!currentUser ? (
-              <div className="flex flex-col items-center justify-center py-16 px-4 text-center max-w-lg mx-auto bg-slate-900/40 border border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6">
-                <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl flex items-center justify-center animate-bounce">
-                  <Lock size={30} />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-extrabold text-white tracking-tight">{t('notLoggedIn')}</h3>
-                  <p className="text-xs text-slate-450 leading-relaxed">{t('notLoggedInDesc')}</p>
-                </div>
-                <button
-                  onClick={() => setAuthOpen(true)}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 px-6 rounded-2xl tracking-wide shadow-lg active:scale-95 transition-all duration-150 uppercase flex items-center gap-2 cursor-pointer border border-amber-450"
-                >
-                  <User size={14} /> {t('connectIdentityBtn')}
-                </button>
-              </div>
+              <WelcomePage 
+                onAuthSuccess={(user) => setCurrentUser(user)}
+                t={t}
+                currentLang={currentLang}
+                setSelectedAsset={setSelectedAsset}
+                setActiveTab={setActiveTab}
+                assets={assets}
+              />
             ) : (
               <>
                 {/* TAB 1: TRADING DESK */}
