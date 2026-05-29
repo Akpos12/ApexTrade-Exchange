@@ -1523,7 +1523,8 @@ app.post("/api/translate", async (req, res) => {
   if (targetLang === "en" || isCooldown) {
     return res.json({
       success: true,
-      translations: fallbackTranslations
+      translations: fallbackTranslations,
+      isFallback: isCooldown
     });
   }
 
@@ -1574,17 +1575,22 @@ app.post("/api/translate", async (req, res) => {
     // fallback matching if lengths mismatch
     return res.json({
       success: true,
-      translations: fallbackTranslations
+      translations: fallbackTranslations,
+      isFallback: true
     });
 
   } catch (error: any) {
-    // Graceful logging of quota exceed state to avoid messy full error outputs
+    // Graceful logging of quota/demand state to avoid messy full error outputs
     const errMsg = error.message || String(error);
     const isQuota = error.status === "RESOURCE_EXHAUSTED" || errMsg.includes("429") || errMsg.includes("quota") || error.status === 429;
+    const isServiceDown = error.status === 503 || error.status === "UNAVAILABLE" || errMsg.includes("503") || errMsg.includes("UNAVAILABLE") || errMsg.includes("demand") || errMsg.includes("temporary");
     
     if (isQuota) {
       console.warn("Notice: Gemini Quota Exceeded (429). Activating safe translation cooldown backoff for 12 hours.");
       geminiCooldownUntil = Date.now() + 12 * 60 * 60 * 1000; // 12-hour safe offline fallback mode
+    } else if (isServiceDown) {
+      console.warn("Notice: Gemini is experiencing demand spikes (503). Activating temporary translation cooldown backoff for 15 minutes.");
+      geminiCooldownUntil = Date.now() + 15 * 60 * 1000; // 15-minute safe offline fallback mode
     } else {
       console.warn("Gemini translation helper connection issue:", errMsg);
     }
@@ -1592,7 +1598,8 @@ app.post("/api/translate", async (req, res) => {
     // Always succeed cleanly with the high accuracy offline dictionary matching, ensuring an ultra-smooth experience
     return res.json({
       success: true,
-      translations: fallbackTranslations
+      translations: fallbackTranslations,
+      isFallback: true
     });
   }
 });

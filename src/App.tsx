@@ -1722,10 +1722,14 @@ export default function App() {
 
   // Keep track of texts currently being requested or those that failed to avoid duplicate network queries
   const requestedTextsRef = useRef<Set<string>>(new Set());
+  const runDomTranslationRef = useRef<() => void>(undefined);
 
   // Dynamic DOM Translation script to translate everything that's remaining in real-time
   useEffect(() => {
     let isMounted = true;
+
+    // Reset the mid-flight requested registry on language or tab change to ensure high-accuracy recovery
+    requestedTextsRef.current.clear();
 
     const isEligibleText = (str: string) => {
       const trimStr = str.trim();
@@ -1759,6 +1763,44 @@ export default function App() {
     };
 
     const runDomTranslation = async () => {
+      // Heuristic resolver to detect if the text is already translated and retrieve its original English string
+      const getOriginalEnglishText = (text: string): string => {
+        const normalized = text.trim();
+        const lower = normalized.toLowerCase();
+        if (!lower) return text;
+
+        // 1. Check if the text is already an exact value or key in the English dictionary
+        const enDict = TRANSLATIONS['en'] || {};
+        for (const [key, value] of Object.entries(enDict)) {
+          if ((value as string).toLowerCase() === lower || key.toLowerCase() === lower) {
+            return value as string;
+          }
+        }
+
+        // 2. Check other target languages to see if this text is a translation of an English key
+        for (const lang of Object.keys(TRANSLATIONS)) {
+          if (lang === 'en') continue;
+          const dict = TRANSLATIONS[lang] || {};
+          for (const [key, value] of Object.entries(dict)) {
+            if ((value as string).toLowerCase() === lower) {
+              return (enDict[key] as string) || key;
+            }
+          }
+        }
+
+        // 3. Check dynamic translationCache to see if this text was a dynamic translation of some English key
+        for (const [cacheKey, transVal] of Object.entries(cacheRef.current)) {
+          if ((transVal as string).toLowerCase() === lower) {
+            const underscoreIdx = cacheKey.indexOf('_');
+            if (underscoreIdx !== -1) {
+              return cacheKey.substring(underscoreIdx + 1);
+            }
+          }
+        }
+
+        return text;
+      };
+
       // First, always restore all previously translated elements in the DOM back to their original English strings to prevent language overlay bugs
       const elementsToRestore = document.querySelectorAll('[data-orig-text]');
       elementsToRestore.forEach(el => {
@@ -1801,21 +1843,33 @@ export default function App() {
           continue;
         }
 
+        // Skip translation for any elements (and their children) with translate="no" or class "notranslate"
+        if (
+          currentNode.getAttribute('translate') === 'no' ||
+          currentNode.classList.contains('notranslate') ||
+          currentNode.closest('[translate="no"]') ||
+          currentNode.closest('.notranslate')
+        ) {
+          currentNode = walker.nextNode() as Element | null;
+          continue;
+        }
+
         // Check placeholder
         const placeholder = currentNode.getAttribute('placeholder');
         if (placeholder && isEligibleText(placeholder)) {
+          const origPl = getOriginalEnglishText(placeholder);
           if (!currentNode.hasAttribute('data-orig-placeholder')) {
-            currentNode.setAttribute('data-orig-placeholder', placeholder);
+            currentNode.setAttribute('data-orig-placeholder', origPl);
           }
-          const origPl = currentNode.getAttribute('data-orig-placeholder') || placeholder;
+          const finalPl = currentNode.getAttribute('data-orig-placeholder') || origPl;
           
           // A. Check static lexicon dictionary first
-          const staticMatch = findStaticTranslation(origPl, currentLang);
+          const staticMatch = findStaticTranslation(finalPl, currentLang);
           if (staticMatch) {
             currentNode.setAttribute('placeholder', staticMatch);
           } else {
             // B. Check dynamic cache
-            const cacheKey = `${currentLang}_${origPl}`;
+            const cacheKey = `${currentLang}_${finalPl}`;
             const cached = cacheRef.current[cacheKey];
             if (cached) {
               currentNode.setAttribute('placeholder', cached);
@@ -1823,7 +1877,7 @@ export default function App() {
               // C. Check requested registry to prevent duplicate fetch requests
               if (!requestedTextsRef.current.has(cacheKey)) {
                 requestedTextsRef.current.add(cacheKey);
-                textsToFetchSet.add(origPl);
+                textsToFetchSet.add(finalPl);
               }
             }
           }
@@ -1835,18 +1889,19 @@ export default function App() {
           if (child.nodeType === 3) { // TEXT_NODE
             const txt = child.textContent?.trim();
             if (txt && isEligibleText(txt)) {
+              const origTx = getOriginalEnglishText(txt);
               if (!currentNode.hasAttribute('data-orig-text')) {
-                currentNode.setAttribute('data-orig-text', txt);
+                currentNode.setAttribute('data-orig-text', origTx);
               }
-              const origTx = currentNode.getAttribute('data-orig-text') || txt;
+              const finalTx = currentNode.getAttribute('data-orig-text') || origTx;
               
               // A. Check static lexicon dictionary first
-              const staticMatch = findStaticTranslation(origTx, currentLang);
+              const staticMatch = findStaticTranslation(finalTx, currentLang);
               if (staticMatch) {
                 child.textContent = staticMatch;
               } else {
                 // B. Check dynamic cache
-                const cacheKey = `${currentLang}_${origTx}`;
+                const cacheKey = `${currentLang}_${finalTx}`;
                 const cached = cacheRef.current[cacheKey];
                 if (cached) {
                   child.textContent = cached;
@@ -1854,7 +1909,7 @@ export default function App() {
                   // C. Check requested registry to prevent duplicate fetch requests
                   if (!requestedTextsRef.current.has(cacheKey)) {
                     requestedTextsRef.current.add(cacheKey);
-                    textsToFetchSet.add(origTx);
+                    textsToFetchSet.add(finalTx);
                   }
                 }
               }
@@ -1881,16 +1936,34 @@ export default function App() {
                 textsToFetch.forEach((englishStr, index) => {
                   updated[`${currentLang}_${englishStr}`] = data.translations[index];
                 });
-                localStorage.setItem('apex_translations_cache', JSON.stringify(updated));
+                if (!data.isFallback) {
+                  localStorage.setItem('apex_translations_cache', JSON.stringify(updated));
+                }
                 return updated;
               });
+            } else {
+              // Clear requested texts registry on server error to enable immediate retry
+              textsToFetch.forEach((englishStr) => {
+                requestedTextsRef.current.delete(`${currentLang}_${englishStr}`);
+              });
             }
+          } else {
+            // Clear requested texts registry on response failure to enable immediate retry
+            textsToFetch.forEach((englishStr) => {
+              requestedTextsRef.current.delete(`${currentLang}_${englishStr}`);
+            });
           }
         } catch (err) {
           console.warn("Translation api fetch failure:", err);
+          // Clear requested texts registry on network failure to enable immediate retry
+          textsToFetch.forEach((englishStr) => {
+            requestedTextsRef.current.delete(`${currentLang}_${englishStr}`);
+          });
         }
       }
     };
+
+    runDomTranslationRef.current = runDomTranslation;
 
     runDomTranslation();
     const interval = setInterval(runDomTranslation, 3000);
@@ -1900,6 +1973,13 @@ export default function App() {
       clearInterval(interval);
     };
   }, [currentLang, activeTab]);
+
+  // Trigger DOM translation immediately when cache updates, avoiding any state clear or flight cancellation
+  useEffect(() => {
+    if (currentLang !== 'en' && runDomTranslationRef.current) {
+      runDomTranslationRef.current();
+    }
+  }, [translationCache, currentLang]);
 
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
@@ -2385,18 +2465,20 @@ export default function App() {
         
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <button 
-            type="button"
-            onClick={() => {
-              setSidebarOpen(!sidebarOpen);
-              if (!sidebarOpen) setMobileMenuOpen(false);
-            }}
-            className="p-1 px-2.5 hover:bg-slate-800 rounded-lg text-slate-350 cursor-pointer flex items-center gap-1.5 border border-slate-800 shadow-sm"
-            title="Toggle asset list drawer"
-          >
-            <TrendingUp size={14} className="text-amber-500 animate-pulse" />
-            <span className="text-[10px] uppercase font-mono font-black tracking-wider hidden xs:inline-block text-slate-300">Markets</span>
-          </button>
+          {currentUser && (
+            <button 
+              type="button"
+              onClick={() => {
+                setSidebarOpen(!sidebarOpen);
+                if (!sidebarOpen) setMobileMenuOpen(false);
+              }}
+              className="p-1 px-2.5 hover:bg-slate-800 rounded-lg text-slate-350 cursor-pointer flex items-center gap-1.5 border border-slate-800 shadow-sm"
+              title="Toggle asset list drawer"
+            >
+              <TrendingUp size={14} className="text-amber-500 animate-pulse" />
+              <span className="text-[10px] uppercase font-mono font-black tracking-wider hidden xs:inline-block text-slate-300">Markets</span>
+            </button>
+          )}
           <div className="flex items-center gap-1.5 cursor-pointer ml-1" onClick={() => { setActiveTab('trade'); setMobileMenuOpen(false); }}>
             <div className="p-1.5 rounded-lg bg-amber-500 font-display font-black text-slate-950 text-sm sm:text-base leading-none tracking-tighter"> Apex </div>
             <span className="text-sm font-display tracking-tight text-white font-extrabold hidden md:inline-block">EXCHANGE</span>
@@ -2614,56 +2696,129 @@ export default function App() {
           </div>
 
           {/* Language Selector Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              className="flex items-center gap-1 bg-[#111317] hover:bg-slate-900 border border-slate-850 py-1.5 px-3 rounded-full cursor-pointer focus:outline-none transition-all duration-150 active:scale-95 text-[10px] font-mono font-bold text-slate-300"
-              title="Change Language / Alterar Idioma"
-            >
-              <Globe size={11} className="text-amber-500" />
-              <span>{currentLang.toUpperCase()}</span>
-              <ChevronDown size={10} className="text-slate-500" />
-            </button>
-            
-            {langDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setLangDropdownOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-850 font-sans text-xs">
-                  {[
-                    { code: 'en', label: 'English' },
-                    { code: 'pt', label: 'Português' },
-                    { code: 'es', label: 'Español' },
-                    { code: 'fr', label: 'Français' },
-                    { code: 'de', label: 'Deutsch' },
-                    { code: 'it', label: 'Italiano' },
-                    { code: 'ar', label: 'العربية' }
-                  ].map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        changeLanguage(lang.code as any);
-                        setLangDropdownOpen(false);
-                        const alertMsgs: Record<string, string> = {
-                          en: "Language switched to English!",
-                          pt: "Idioma alterado para Português!",
-                          es: "Idioma cambiado a Español!",
-                          de: "Sprache auf Deutsch umgestellt!",
-                          fr: "Langue changée en Français !",
-                          it: "Lingua cambiata in Italiano!",
-                          ar: "تم تغيير اللغة إلى العربية!"
-                        };
-                        customAlert(alertMsgs[lang.code] || `Language switched to ${lang.label}!`);
-                      }}
-                      className={`w-full text-left px-3.5 py-2 hover:bg-slate-850 text-[11px] font-bold block transition-colors ${
-                        currentLang === lang.code ? 'text-amber-500 bg-slate-950/40' : 'text-slate-305 hover:text-white'
-                      }`}
-                    >
-                      {lang.label}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+          <div className="relative" translate="no">
+            {(() => {
+              const renderLanguageBall = (lang: string) => {
+                switch (lang) {
+                  case 'en':
+                    return (
+                      <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 rounded-full overflow-hidden shadow-sm inline-block shrink-0 border border-slate-700/50">
+                        <rect width="32" height="32" fill="#012169"/>
+                        <path d="M0 0 L32 32 M32 0 L0 32" stroke="#fff" strokeWidth="4"/>
+                        <path d="M0 0 L32 32 M32 0 L0 32" stroke="#C8102E" strokeWidth="2.5"/>
+                        <path d="M16 0 V32 M0 16 H32" stroke="#fff" strokeWidth="6"/>
+                        <path d="M16 0 V32 M0 16 H32" stroke="#C8102E" strokeWidth="4"/>
+                      </svg>
+                    );
+                  case 'pt':
+                    return (
+                      <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 rounded-full overflow-hidden shadow-sm inline-block shrink-0 border border-slate-700/50">
+                        <rect width="32" height="32" fill="#009739"/>
+                        <polygon points="16,3 29,16 16,29 3,16" fill="#FEDD00"/>
+                        <circle cx="16" cy="16" r="6" fill="#012169"/>
+                        <path d="M10 16 Q16 13 22 15" stroke="#fff" strokeWidth="1" fill="none"/>
+                      </svg>
+                    );
+                  case 'es':
+                    return (
+                      <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 rounded-full overflow-hidden shadow-sm inline-block shrink-0 border border-slate-700/50">
+                        <rect width="32" height="32" fill="#AD1519"/>
+                        <rect y="8" width="32" height="16" fill="#FCD116"/>
+                        <circle cx="10" cy="16" r="3" fill="#AD1519" opacity="0.85"/>
+                      </svg>
+                    );
+                  case 'fr':
+                    return (
+                      <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 rounded-full overflow-hidden shadow-sm inline-block shrink-0 border border-slate-700/50">
+                        <rect width="10.6" height="32" fill="#00209F"/>
+                        <rect x="10.6" width="10.8" height="32" fill="#FFF"/>
+                        <rect x="21.4" width="10.8" height="32" fill="#F31830"/>
+                      </svg>
+                    );
+                  case 'de':
+                    return (
+                      <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 rounded-full overflow-hidden shadow-sm inline-block shrink-0 border border-slate-700/50">
+                        <rect width="32" height="10.6" fill="#000"/>
+                        <rect y="10.6" width="32" height="10.8" fill="#FF0000"/>
+                        <rect y="21.4" width="32" height="10.6" fill="#FFCC00"/>
+                      </svg>
+                    );
+                  case 'it':
+                    return (
+                      <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 rounded-full overflow-hidden shadow-sm inline-block shrink-0 border border-slate-700/50">
+                        <rect width="10.6" height="32" fill="#009246"/>
+                        <rect x="10.6" width="10.8" height="32" fill="#FFF"/>
+                        <rect x="21.4" width="10.8" height="32" fill="#CE2B37"/>
+                      </svg>
+                    );
+                  case 'ar':
+                    return (
+                      <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 rounded-full overflow-hidden shadow-sm inline-block shrink-0 border border-slate-700/50">
+                        <rect width="32" height="32" fill="#006C35"/>
+                        <circle cx="16" cy="16" r="6" fill="#fff"/>
+                        <circle cx="18" cy="16" r="6" fill="#006C35"/>
+                      </svg>
+                    );
+                  default:
+                    return <Globe size={11} className="text-amber-500" />;
+                }
+              };
+
+              return (
+                <>
+                  <button
+                    onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                    className="flex items-center gap-1.5 bg-[#111317] hover:bg-slate-900 border border-slate-850 py-1.5 px-3 rounded-full cursor-pointer focus:outline-none transition-all duration-150 active:scale-95 text-[10px] font-mono font-bold text-slate-300"
+                    title="Change Language / Alterar Idioma"
+                  >
+                    {renderLanguageBall(currentLang)}
+                    <span>{currentLang.toUpperCase()}</span>
+                    <ChevronDown size={10} className="text-slate-500" />
+                  </button>
+                  
+                  {langDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setLangDropdownOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-850 font-sans text-xs">
+                        {[
+                          { code: 'en', label: 'English' },
+                          { code: 'pt', label: 'Português' },
+                          { code: 'es', label: 'Español' },
+                          { code: 'fr', label: 'Français' },
+                          { code: 'de', label: 'Deutsch' },
+                          { code: 'it', label: 'Italiano' },
+                          { code: 'ar', label: 'العربية' }
+                        ].map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => {
+                              changeLanguage(lang.code as any);
+                              setLangDropdownOpen(false);
+                              const alertMsgs: Record<string, string> = {
+                                en: "Language switched to English!",
+                                pt: "Idioma alterado para Português!",
+                                es: "Idioma cambiado a Español!",
+                                de: "Sprache auf Deutsch umgestellt!",
+                                fr: "Langue changée en Français !",
+                                it: "Lingua cambiata in Italiano!",
+                                ar: "تم تغيير اللغة إلى العربية!"
+                              };
+                              customAlert(alertMsgs[lang.code] || `Language switched to ${lang.label}!`);
+                            }}
+                            className={`w-full text-left px-3.5 py-2 hover:bg-slate-850 text-[11px] font-bold flex items-center gap-2 transition-colors ${
+                              currentLang === lang.code ? 'text-amber-500 bg-slate-950/40' : 'text-slate-300 hover:text-white'
+                            }`}
+                          >
+                            {renderLanguageBall(lang.code)}
+                            <span>{lang.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           <button
@@ -2704,7 +2859,7 @@ export default function App() {
       <div className="flex flex-1 relative overflow-hidden">
         
         {/* Backdrop for Markets Sidebar Drawer on Mobile */}
-        {sidebarOpen && (
+        {currentUser && sidebarOpen && (
           <div 
             className="fixed inset-0 bg-black/60 z-20 md:hidden cursor-pointer"
             onClick={() => setSidebarOpen(false)}
@@ -2712,11 +2867,12 @@ export default function App() {
         )}
 
         {/* SIDEBAR: ASSET SELECTOR DRAWER */}
-        <aside 
-          className={`bg-slate-900 border-r border-slate-850 transition-all duration-300 z-30 flex flex-col justify-between fixed md:relative top-[105px] md:top-0 h-[calc(100vh-105px)] md:h-auto left-0 ${
-            currentUser && sidebarOpen ? 'w-[280px] translate-x-0 opacity-100' : 'w-0 -translate-x-full md:translate-x-0 md:w-0 md:opacity-0 md:pointer-events-none'
-          }`}
-        >
+        {currentUser && (
+          <aside 
+            className={`bg-slate-900 border-r border-slate-850 transition-all duration-300 z-30 flex flex-col justify-between fixed md:relative top-[105px] md:top-0 h-[calc(100vh-105px)] md:h-auto left-0 ${
+              sidebarOpen ? 'w-[280px] translate-x-0 opacity-100' : 'w-0 -translate-x-full md:translate-x-0 md:w-0 md:opacity-0 md:pointer-events-none'
+            }`}
+          >
           <div className="p-4 flex flex-col h-full">
             <div className="space-y-4">
               <div className="flex bg-slate-950 rounded-lg p-1.5 items-center gap-1 border border-slate-800 text-xs">
@@ -2901,6 +3057,7 @@ export default function App() {
             </div>
           </div>
         </aside>
+        )}
 
         {/* CORE WORKSPACE VIEWPORT */}
         <main className="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
@@ -3511,14 +3668,10 @@ export default function App() {
                   <form onSubmit={handleSsoSubmit} className="space-y-4">
                     <div className="flex flex-col items-center text-center pb-2">
                       <div className="w-12 h-12 bg-slate-950 rounded-2xl flex items-center justify-center border border-slate-800 text-lg mb-2">
-                        {ssoProvider === 'google' ? (
-                          <span className="text-red-400 font-extrabold font-mono">G</span>
-                        ) : (
-                          <span className="text-white"></span>
-                        )}
+                        <span className="text-red-400 font-extrabold font-mono">G</span>
                       </div>
                       <h4 className="text-sm font-bold text-white capitalize">
-                        {ssoProvider === 'google' ? t('googleSso') : t('appleSso')}
+                        Google SSO / Gmail
                       </h4>
                       <p className="text-[10px] text-slate-400 mt-1 max-w-xs leading-relaxed">
                         {t('enterSsoEmailPrompt')}
@@ -3635,20 +3788,13 @@ export default function App() {
                       <div className="flex-1 h-[1px] bg-slate-850" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-mono font-bold">
+                    <div className="text-[10px] font-mono font-bold">
                       <button
                         type="button"
                         onClick={() => handleSsoAuthenticate('google')}
-                        className="flex items-center justify-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-200 py-2 rounded-xl transition cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-200 py-2 rounded-xl transition cursor-pointer"
                       >
-                        <span className="text-red-400">G</span> Google Sign In
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSsoAuthenticate('apple')}
-                        className="flex items-center justify-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-200 py-2 rounded-xl transition cursor-pointer"
-                      >
-                        <span className="text-slate-400"></span> Apple ID SSO
+                        <span className="text-red-400">G</span> Google Sign In / Gmail
                       </button>
                     </div>
 
@@ -3716,20 +3862,13 @@ export default function App() {
                       <div className="flex-1 h-[1px] bg-slate-850" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-mono font-bold">
+                    <div className="text-[10px] font-mono font-bold">
                       <button
                         type="button"
                         onClick={() => handleSsoAuthenticate('google')}
-                        className="flex items-center justify-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-200 py-2 rounded-xl transition cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-200 py-2 rounded-xl transition cursor-pointer"
                       >
-                        <span className="text-red-400">G</span> Google SSO
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSsoAuthenticate('apple')}
-                        className="flex items-center justify-center gap-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-200 py-2 rounded-xl transition cursor-pointer"
-                      >
-                        <span className="text-slate-400"></span> Apple SSO
+                        <span className="text-red-400">G</span> Google SSO / Gmail
                       </button>
                     </div>
 

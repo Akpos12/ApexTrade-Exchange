@@ -7,98 +7,39 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
     // Users collection rules
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && userId == request.auth.uid;
-      allow update: if isSignedIn() && userId == request.auth.uid && (
-        !incoming().diff(existing()).affectedKeys().hasAny(['role', 'status'])
-      );
-      allow delete: if false; // Users cannot delete their accounts
+      allow read, write: if true;
     }
 
     // Deposits collection rules
     match /deposits/{depId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && (
-        // Admins can update deposit statuses
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      allow read, write: if true;
     }
 
     // Withdrawals collection rules
     match /withdrawals/{wthId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && (
-        // Admins can update withdrawal statuses
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      allow read, write: if true;
     }
 
     // Support Tickets collection rules
     match /tickets/{ticketId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
-      allow update: if isSignedIn() && (
-        incoming().userId == request.auth.uid ||
-        (
-          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-        )
-      );
-      allow delete: if isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      allow read, write: if true;
     }
 
     // FAQs collection rules
     match /faqs/{faqId} {
-      allow read: if true; // Public FAQs
-      allow write: if isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      allow read, write: if true;
     }
 
     // Audit logs collection rules
     match /audits/{auditId} {
-      allow read: if isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
-      allow create: if isSignedIn(); // Users can submit log entries
-      allow update, delete: if false; // Immutable audit logs
+      allow read, write: if true;
     }
 
     // Payment configuration rules
     match /payment_config/{pcId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      allow read, write: if true;
     }
   }
 }
