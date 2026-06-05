@@ -998,7 +998,7 @@ export default function App() {
       qdVerifiedPlatform: "🚨 VERIFIED PLATFORM ADDRESS",
       qdUsdtDesc: "Secure hot-cold storage vault. Onchain deposits are held in real-time liquidity pools.",
       qdBtcDesc: "Direct blockchain ledger deposit address.",
-      qdEthDesc: "ERC-20 standard smart contract deposit point.",
+      qdEthDesc: "TRC-20 standard wrapped smart contract deposit point.",
       qdSolDesc: "Solana high speed asset clearing wallet.",
       qdScanQr: "SCAN DEPOSIT QR",
       qdBankCoordHeader: "🏢 CLEARING INSTITUTION COORDINATES",
@@ -1175,7 +1175,7 @@ export default function App() {
       qdVerifiedPlatform: "🚨 ENDEREÇO DE PLATAFORMA VERIFICADO",
       qdUsdtDesc: "Cofre seguro com armazenamento frio e quente. Os depósitos são creditados em pools de liquidez em tempo real.",
       qdBtcDesc: "Endereço de depósito direto no livro-razão da blockchain (ledger).",
-      qdEthDesc: "Ponto de depósito padrão em contrato inteligente ERC-20.",
+      qdEthDesc: "Ponto de depósito padrão em contrato inteligente TRC-20.",
       qdSolDesc: "Carteira de compensação de ativos de alta velocidade em Solana.",
       qdScanQr: "ESCANEAR DEPOSIT QR",
       qdBankCoordHeader: "🏢 COORDENADAS DA INSTITUIÇÃO DE COMPENSAÇÃO",
@@ -1352,7 +1352,7 @@ export default function App() {
       qdVerifiedPlatform: "🚨 DIRECCIÓN DE PLATAFORMA VERIFICADA",
       qdUsdtDesc: "Bóveda segura con almacenamiento en frío y caliente. Los depósitos se acreditan en pools de liquidez en tiempo real.",
       qdBtcDesc: "Dirección de depósito directo en el libro mayor de la blockchain (ledger).",
-      qdEthDesc: "Punto de depósito estándar en contrato inteligente ERC-20.",
+      qdEthDesc: "Punto de depósito estándar en contrato inteligente TRC-20.",
       qdSolDesc: "Billetera de compensación de activos de alta velocidad en Solana.",
       qdScanQr: "ESCANEAR QR DE DEPÓSITO",
       qdBankCoordHeader: "🏢 COORDENADAS DE LA INSTITUIÇÃO DE COMPENSACIÓN",
@@ -1428,7 +1428,7 @@ export default function App() {
       qdVerifiedPlatform: "🚨 VERIFIZIERTE PLATTFORMADRESSE",
       qdUsdtDesc: "Sicherer Tresor mit Heiß- und Kaltspeicherung. On-Chain-Einzahlungen werden in Echtzeit-Liquiditätspools gehalten.",
       qdBtcDesc: "Direkte Blockchain-Ledger-Einzahlungsadresse.",
-      qdEthDesc: "ERC-20-Standard-Smart-Contract-Einladungspunkt.",
+      qdEthDesc: "TRC-20-Standard-Smart-Contract-Einladungspunkt.",
       qdSolDesc: "Solana High-Speed-Asset-Clearing-Wallet.",
       qdScanQr: "EINZAHLUNG QR SCANNEN",
       qdBankCoordHeader: "🏢 CLEARING-INSTITUTIONSKOORDINATEN",
@@ -1504,7 +1504,7 @@ export default function App() {
       qdVerifiedPlatform: "🚨 ADRESSE DE PLATEFORME VÉRIFIÉE",
       qdUsdtDesc: "Le coffre-fort sécurisé (chaud/froid). Les dépôts en chaîne sont conservés dans des pools de liquidité en temps réel.",
       qdBtcDesc: "Adresse de dépôt direct sur le grand livre de la blockchain (ledger).",
-      qdEthDesc: "Point de dépôt standard du contrat intelligent ERC-20.",
+      qdEthDesc: "Point de dépôt standard du contrat intelligent TRC-20.",
       qdSolDesc: "Portefeuille de compensation d'actifs ultra-rapide Solana.",
       qdScanQr: "SCANNER LE QR DE DÉPÔT",
       qdBankCoordHeader: "🏢 COORDONNÉES DE L'INSTITUTION DE COMPENSATION",
@@ -1580,7 +1580,7 @@ export default function App() {
       qdVerifiedPlatform: "🚨 INDIRIZZO PIATTAFORMA VERIFICATO",
       qdUsdtDesc: "Caveau sicuro (hot-cold storage). I depositi on-chain sono detenuti in pool di liquidità in tempo reale.",
       qdBtcDesc: "Indirizzo di deposito diretto sul registro di contabilità della blockchain (ledger).",
-      qdEthDesc: "Punto di deposito standard dello smart contract ERC-20.",
+      qdEthDesc: "Punto di deposito standard dello smart contract TRC-20.",
       qdSolDesc: "Portafoglio di compensazione delle attività ad alta velocità di Solana.",
       qdScanQr: "SCANSIONA LE QR CODE DI DEPOSITO",
       qdBankCoordHeader: "🏢 COORDINATE DELL'ISTITUTO DI LIQUIDAZIONE",
@@ -1656,7 +1656,7 @@ export default function App() {
       qdVerifiedPlatform: "🚨 عنوان المنصة المؤكد والموثق",
       qdUsdtDesc: "خزنة حماية باردة وساخنة لحفظ الأصول. الإيداعات المباشرة يتم الاحتفاظ بها في مجمعات السيولة الفورية.",
       qdBtcDesc: "عنوان الإيداع المباشر في دفتر الأستاذ للبيتكوين.",
-      qdEthDesc: "نقطة الإيداع المحددة لتوافق شبكة Ethereum ERC-20.",
+      qdEthDesc: "نقطة الإيداع المحددة لتوافق شبكة Ethereum TRC-20.",
       qdSolDesc: "محفظة تسوية أصول شبكة Solana فائقة السرعة.",
       qdScanQr: "مسح كود الاستجابة السريعة للإيداع QR",
       qdBankCoordHeader: "🏢 إحداثيات وتفاصيل بنك المقاصة والتسوية",
@@ -3294,9 +3294,9 @@ export default function App() {
                     <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider font-mono block">{t('qdSelectCrypto')}</span>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { id: 'USDT', label: 'USDT (ERC-20)', subText: 'Tether USD Ethereum' },
+                        { id: 'USDT', label: 'USDT (TRC-20)', subText: 'Tether USD TRON Network' },
                         { id: 'BTC', label: 'BTC (Bitcoin Network)', subText: 'Native Bitcoin Chain' },
-                        { id: 'ETH', label: 'ETH (ERC-20 Network)', subText: 'Native Ethereum' },
+                        { id: 'ETH', label: 'ETH (TRC-20 Wrapped)', subText: 'Wrapped Ethereum (Tron Hook)' },
                         { id: 'SOL', label: 'SOL (Solana Chain)', subText: 'Solana High Speed' }
                       ].map((crypto) => (
                         <button
@@ -3335,9 +3335,9 @@ export default function App() {
             {/* Step 2: Show coordinates of addresses/details */}
             {quickDepositStep === 2 && (() => {
               const cryptoInfo = {
-                USDT: { name: 'USDT (ERC-20 Network)', address: paymentCoordinates?.cryptoAddresses?.USDT?.address || '0x89201940000ABeC7816ED29A09823AB78E993', sub: t('qdUsdtDesc') },
+                USDT: { name: 'USDT (TRC-20 Network)', address: paymentCoordinates?.cryptoAddresses?.USDT?.address || 'TXD9820194000ABeC7816ED29A09823AB7', sub: t('qdUsdtDesc') },
                 BTC: { name: 'Bitcoin (BTC Native)', address: paymentCoordinates?.cryptoAddresses?.BTC?.address || 'bc1q9823ab78e99309823ab78e993bc1q9823', sub: t('qdBtcDesc') },
-                ETH: { name: 'Ethereum (ETH Network)', address: paymentCoordinates?.cryptoAddresses?.ETH?.address || '0x7129A09823AB78E993089201940000ABeC7816', sub: t('qdEthDesc') },
+                ETH: { name: 'Ethereum (TRC-20 Network)', address: paymentCoordinates?.cryptoAddresses?.ETH?.address || 'TETH7129A09823ABeC7816ED29A09823AB78E', sub: t('qdEthDesc') },
                 SOL: { name: 'Solana (SOL Network)', address: paymentCoordinates?.cryptoAddresses?.SOL?.address || '9823aBeC7816ED29A09823AB78E99389201940eZ', sub: t('qdSolDesc') }
               }[quickDepositCryptoType];
 

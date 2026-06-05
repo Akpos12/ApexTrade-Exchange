@@ -1986,8 +1986,8 @@ const SEED_WITHDRAWALS: ServerWithdrawal[] = [
     method: "crypto",
     currency: "ETH",
     amount: 2500.00,
-    walletAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-    network: "ERC20",
+    walletAddress: "T742d35Cc6634C0532925a3b844Bc454e4438f44",
+    network: "TRC20",
     status: "pending",
     timestamp: "2026-05-24T12:45:00Z"
   }
@@ -2053,7 +2053,7 @@ const SEED_FAQS: ServerFAQ[] = [
   {
     id: "faq-2",
     question: "What cryptocurrency blockchain networks are supported?",
-    answer: "We support BTC (Bitcoin Mainnet), ETH (ERC20), USDT (TRC20, ERC20), and BNB (BSC BEP20). Confirm your sending address matches the displayed network strictly.",
+    answer: "We support BTC (Bitcoin Mainnet), ETH (TRC20), USDT (TRC20), and BNB (BSC BEP20). Confirm your sending address matches the displayed network strictly.",
     category: "crypto"
   },
   {
@@ -2097,9 +2097,9 @@ let paymentCoordinates = {
   routingNumber: "021000021",
   accountNumber: "1029-4581-9238",
   cryptoAddresses: {
-    USDT: { name: "USDT (ERC-20 Network)", address: "0x89201940000ABeC7816ED29A09823AB78E993", sub: "Secure hot-cold storage vault. Onchain deposits are held in real-time liquidity pools." },
+    USDT: { name: "USDT (TRC-20 Network)", address: "TXD9820194000ABeC7816ED29A09823AB7", sub: "Secure high-speed Tron network contract deposit on TRC-20." },
     BTC: { name: "Bitcoin (BTC Native)", address: "bc1q9823ab78e99309823ab78e993bc1q9823", sub: "Direct blockchain ledger deposit address." },
-    ETH: { name: "Ethereum (ETH Network)", address: "0x7129A09823AB78E993089201940000ABeC7816", sub: "ERC-20 standard smart contract deposit point." },
+    ETH: { name: "Ethereum (TRC-20 Network)", address: "TETH7129A09823ABeC7816ED29A09823AB78E", sub: "TRC-20 standard wrapped smart contract deposit point." },
     SOL: { name: "Solana (SOL Network)", address: "9823aBeC7816ED29A09823AB78E99389201940eZ", sub: "Solana high speed asset clearing wallet." }
   }
 };

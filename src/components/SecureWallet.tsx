@@ -416,13 +416,13 @@ export default function SecureWallet({ balances, assets, onSwapAssets, onModifyB
                 <QrCode size={110} className="text-white" />
               </div>
               <div className="space-y-2 flex-1 w-full text-center sm:text-left">
-                <span className="text-amber-500 font-bold text-xs uppercase block tracking-wider">SECURED ERC-20 COMPLIANT PORT</span>
+                <span className="text-amber-500 font-bold text-xs uppercase block tracking-wider">SECURED TRC-20 COMPLIANT PORT</span>
                 <p className="text-slate-400 text-[10px]">
                   Send your preferred {opAsset} payments directly to the platform storage vault gateway below:
                 </p>
                 
                 <div className="flex bg-slate-950 border border-slate-800 rounded p-2 justify-between items-center mt-1">
-                  <span className="text-[10px] text-white truncate mr-2 select-all">0x89201940000ABeC781...78E993</span>
+                  <span className="text-[10px] text-white truncate mr-2 select-all">TXD9820194000ABeC781...9823AB7</span>
                   <button
                     type="button"
                     onClick={copyDepositAddr}

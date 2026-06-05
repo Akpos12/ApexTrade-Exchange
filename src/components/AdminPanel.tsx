@@ -1515,12 +1515,12 @@ export default function AdminPanel({ currentAdminEmail, onLogout, triggerGlobalT
 
                   <div className="space-y-3 font-mono text-xs">
                     <div>
-                      <label className="text-[10px] uppercase text-slate-550 block mb-1">USDT (ERC-20/TRC-20 Network Coordinate)</label>
+                      <label className="text-[10px] uppercase text-slate-550 block mb-1">USDT (TRC-20 Network Coordinate)</label>
                       <input 
                         type="text" 
                         value={editUsdtAddress}
                         onChange={(e) => setEditUsdtAddress(e.target.value)}
-                        placeholder="0x8920...3AB78E993"
+                        placeholder="TXD9820...823AB7"
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500"
                       />
                     </div>
@@ -1537,12 +1537,12 @@ export default function AdminPanel({ currentAdminEmail, onLogout, triggerGlobalT
                     </div>
 
                     <div>
-                      <label className="text-[10px] uppercase text-slate-550 block mb-1">Ethereum (ETH Network Coordinate)</label>
+                      <label className="text-[10px] uppercase text-slate-550 block mb-1">Ethereum (TRC-20 Network Coordinate)</label>
                       <input 
                         type="text" 
                         value={editEthAddress}
                         onChange={(e) => setEditEthAddress(e.target.value)}
-                        placeholder="0x7129...00ABeC7816"
+                        placeholder="TETH7129...E993892"
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:border-amber-500"
                       />
                     </div>
