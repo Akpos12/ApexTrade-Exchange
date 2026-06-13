@@ -29,6 +29,8 @@ export interface Asset {
   communityPollBullish: number; // e.g. 78% bullish
   isPreIpo?: boolean;
   expectedListingPrice?: number;
+  marketOpen?: boolean;
+  sessionDetails?: string;
 }
 
 export interface HistoricalPoint {

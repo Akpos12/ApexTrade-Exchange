@@ -451,7 +451,7 @@ const SENTIMENT_DATABASE: Record<string, { gauges: Record<string, SourceGauge>; 
       }
     ]
   },
-  SPACE: {
+  SPCX: {
     gauges: {
       social_x: { positive: 92, neutral: 6, negative: 2 },
       social_reddit: { positive: 88, neutral: 10, negative: 2 },
@@ -465,7 +465,7 @@ const SENTIMENT_DATABASE: Record<string, { gauges: Record<string, SourceGauge>; 
         type: 'news',
         userOrAuthor: 'Aerospace Ledger',
         avatarText: 'BB',
-        text: 'SpaceX pre-IPO trading surges on secondary markets as valuation crosses $180B. Investors are expecting a public listing IPO price of $195.00 before year-end.',
+        text: 'SpaceX ETF (SPCX) volume surges as satellite launch achievements mount under standard operations. Analysts highlight strong structural demand for space-industry indices.',
         sentiment: 'positive',
         likes: 312,
         replies: 45,
@@ -477,7 +477,7 @@ const SENTIMENT_DATABASE: Record<string, { gauges: Record<string, SourceGauge>; 
         type: 'social',
         userOrAuthor: '@Starship_Hype',
         avatarText: 'SH',
-        text: 'The private pricing for SpaceX stock at $135.20 is a steal! Multiple brokerage firms report massive queues. Once this goes public, underwriters expect a retail premium push above $200.',
+        text: 'The SPCX ETF is seeing steady accumulation. Multiple institutional channels report massive retail demand for diversified private aerospace access.',
         sentiment: 'positive',
         likes: 521,
         replies: 89,
@@ -487,9 +487,9 @@ const SENTIMENT_DATABASE: Record<string, { gauges: Record<string, SourceGauge>; 
         id: 'space-3',
         source: 'CNBC Market',
         type: 'news',
-        userOrAuthor: 'IPO Desk Reporter',
+        userOrAuthor: 'Ticker Desk Reporter',
         avatarText: 'CN',
-        text: 'SpaceX institutional tenders allow secondary liquid clearance. High interest from sovereign wealth funds keeps pre-IPO allocations under tight lock.',
+        text: 'SPCX provides premium public market exposure to SpaceX operations, supporting retail access to high-velocity orbital delivery tech networks.',
         sentiment: 'positive',
         likes: 188,
         replies: 24,

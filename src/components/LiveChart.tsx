@@ -33,6 +33,11 @@ export default function LiveChart({ selectedAsset }: LiveChartProps) {
   const [showEMA, setShowEMA] = useState(false);
   const [chartType, setChartType] = useState<'line' | 'candle'>('candle');
   const [indicatorHeight, setIndicatorHeight] = useState<'rsi' | 'macd' | 'none'>('rsi');
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<string>('');
+
+  useEffect(() => {
+    setLastUpdatedTime(new Date().toLocaleTimeString());
+  }, [selectedAsset.price]);
 
   // Load historical data whenever selectedAsset or timeframe changes
   useEffect(() => {
@@ -209,9 +214,30 @@ export default function LiveChart({ selectedAsset }: LiveChartProps) {
           <span className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
             {selectedAsset.name}
           </span>
-          {selectedAsset.isPreIpo && (
+          {selectedAsset.isPreIpo ? (
             <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[9px] font-mono font-extrabold uppercase tracking-widest animate-pulse">
               PRE-IPO SEC-TRADING
+            </span>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-extrabold border uppercase tracking-wider ${
+                (selectedAsset.marketOpen || selectedAsset.category === 'crypto')
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : 'bg-rose-500/10 text-rose-400 border-rose-500/15'
+              }`}>
+                {(selectedAsset.marketOpen || selectedAsset.category === 'crypto') ? '● Market Open' : '● Market Closed'}
+              </span>
+              {selectedAsset.sessionDetails && (
+                <span className="text-[9px] font-mono text-slate-500 hidden xl:inline max-w-[140px] truncate" title={selectedAsset.sessionDetails}>
+                  ({selectedAsset.sessionDetails})
+                </span>
+              )}
+            </div>
+          )}
+          {lastUpdatedTime && (
+            <span className="text-[9px] font-mono text-slate-500 border border-slate-800/60 px-1.5 py-0.5 rounded flex items-center gap-1">
+              <span>Sync:</span>
+              <span className="text-amber-500 font-bold">{lastUpdatedTime}</span>
             </span>
           )}
           <span className={`text-sm font-semibold flex items-center gap-1 ${

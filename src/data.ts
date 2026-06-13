@@ -147,22 +147,20 @@ export const INITIAL_ASSETS: Asset[] = [
   },
   {
     id: 'space',
-    name: 'SpaceX (Pre-IPO)',
-    symbol: 'SPACE',
+    name: 'SpaceX (SPCX)',
+    symbol: 'SPCX',
     category: 'stock',
     price: 135.20,
     change24h: 2.45,
     high24h: 138.00,
     low24h: 134.10,
     volume24h: 42000000,
-    marketCap: 180000000000,
-    description: 'Space Exploration Technologies Corp. is an American spacecraft manufacturer and satellite communications company. Expected to be the largest space-related IPO in history.',
+    marketCap: 180000000,
+    description: 'SpaceX ETF (SPCX) tracks space development, satellite systems, and rocket booster exploration companies, capturing the growth of the private and public space economy.',
     sentimentScore: 92,
     sentimentLabel: 'Extremely Bullish',
     fearGreedIndex: 88,
-    communityPollBullish: 94,
-    isPreIpo: true,
-    expectedListingPrice: 195.00
+    communityPollBullish: 94
   },
   {
     id: 'openai',

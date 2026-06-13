@@ -295,25 +295,23 @@ const GLOBAL_ASSETS: MarketAsset[] = [
   },
   {
     id: 'space',
-    name: 'SpaceX (Pre-IPO)',
-    symbol: 'SPACE',
+    name: 'SpaceX (SPCX)',
+    symbol: 'SPCX',
     category: 'stock',
     price: 135.20,
     change24h: 2.45,
     high24h: 138.00,
     low24h: 134.10,
     volume24h: 42000000,
-    marketCap: 180000000000,
+    marketCap: 180000000,
     previousClose: 132.00,
-    description: 'Space Exploration Technologies Corp. is an American spacecraft manufacturer and satellite communications company. Expected to be the largest space-related IPO in history.',
+    description: 'SpaceX ETF (SPCX) tracks space development, rocket booster exploration, and satellite system networks, giving premium index coverage of the private and public space economy.',
     sentimentScore: 92,
     sentimentLabel: 'Extremely Bullish',
     fearGreedIndex: 88,
     communityPollBullish: 94,
-    yahooSymbol: '',
-    exchange: 'PRIVATE SECONDARY MARKET',
-    isPreIpo: true,
-    expectedListingPrice: 195.00
+    yahooSymbol: 'SPCX',
+    exchange: 'NYSE Arca (US)'
   },
   {
     id: 'openai',
@@ -932,7 +930,7 @@ function getMarketSessionInfo(category: string, symbol: string): SessionResponse
   }
 
   // US Exchanges (NYSE / NASDAQ / DJI / SPX / NDX)
-  if (symbol === 'AAPL' || symbol === 'TSLA' || symbol === 'NVDA' || symbol === 'MSFT' || symbol === 'SPX' || symbol === 'NDX' || symbol === 'DJI') {
+  if (symbol === 'AAPL' || symbol === 'TSLA' || symbol === 'NVDA' || symbol === 'MSFT' || symbol === 'SPX' || symbol === 'NDX' || symbol === 'DJI' || symbol === 'SPCX') {
     if (timeValue >= 13.5 && timeValue <= 20) {
       return { status: 'OPEN', sessionDetails: 'US Regular Trading Session' };
     }
